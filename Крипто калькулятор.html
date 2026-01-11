@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Крипто калькулятор</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0b0f1a;
+        --card: #111828;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --accent-2: #22c55e;
+        --border: #1e293b;
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top, #111827, #0b0f1a 55%);
+        color: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+      }
+
+      .app {
+        width: min(960px, 100%);
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      header {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: clamp(28px, 4vw, 40px);
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 720px;
+        line-height: 1.6;
+      }
+
+      .card {
+        background: linear-gradient(160deg, rgba(56, 189, 248, 0.08), rgba(34, 197, 94, 0.05));
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 20px 40px rgba(2, 6, 23, 0.55);
+      }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 20px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+
+      .field label {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .field input,
+      .field select {
+        background: #0f172a;
+        border: 1px solid var(--border);
+        color: #f8fafc;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 15px;
+      }
+
+      .field input:focus,
+      .field select:focus {
+        outline: 2px solid rgba(56, 189, 248, 0.4);
+        border-color: rgba(56, 189, 248, 0.5);
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+
+      .results {
+        display: grid;
+        gap: 16px;
+      }
+
+      .result {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid var(--border);
+      }
+
+      .result span {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .result strong {
+        font-size: 22px;
+        display: block;
+        margin-top: 6px;
+      }
+
+      .highlight {
+        color: var(--accent-2);
+      }
+
+      .neg {
+        color: #f87171;
+      }
+
+      footer {
+        grid-column: 1 / -1;
+        color: var(--muted);
+        font-size: 13px;
+        text-align: center;
+      }
+
+      button {
+        border: none;
+        background: var(--accent);
+        color: #00111f;
+        padding: 12px 16px;
+        font-weight: 600;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.1s ease;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      .disclaimer {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Крипто калькулятор</h1>
+        <p>Оцените прибыль, комиссию и общую доходность сделки за несколько секунд. Заполните поля и получите мгновенный расчёт.</p>
+      </header>
+
+      <section class="card">
+        <h2>Параметры сделки</h2>
+        <div class="field">
+          <label for="asset">Криптовалюта</label>
+          <select id="asset">
+            <option value="BTC">Bitcoin (BTC)</option>
+            <option value="ETH">Ethereum (ETH)</option>
+            <option value="SOL">Solana (SOL)</option>
+            <option value="USDT">Tether (USDT)</option>
+            <option value="CUSTOM">Другое</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="amount">Количество монет</label>
+          <input id="amount" type="number" min="0" step="0.0001" value="1" />
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label for="buyPrice">Цена покупки ($)</label>
+            <input id="buyPrice" type="number" min="0" step="0.01" value="25000" />
+          </div>
+          <div class="field">
+            <label for="sellPrice">Цена продажи ($)</label>
+            <input id="sellPrice" type="number" min="0" step="0.01" value="32000" />
+          </div>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label for="fee">Комиссия биржи (%)</label>
+            <input id="fee" type="number" min="0" step="0.01" value="0.1" />
+          </div>
+          <div class="field">
+            <label for="tax">Налог/прочие издержки (%)</label>
+            <input id="tax" type="number" min="0" step="0.01" value="0" />
+          </div>
+        </div>
+        <button type="button" id="reset">Сбросить</button>
+      </section>
+
+      <section class="card">
+        <h2>Результат</h2>
+        <div class="results">
+          <div class="result">
+            <span>Сумма покупки</span>
+            <strong id="cost">—</strong>
+          </div>
+          <div class="result">
+            <span>Сумма продажи</span>
+            <strong id="proceeds">—</strong>
+          </div>
+          <div class="result">
+            <span>Комиссии и издержки</span>
+            <strong id="fees">—</strong>
+          </div>
+          <div class="result">
+            <span>Прибыль / убыток</span>
+            <strong id="profit">—</strong>
+          </div>
+          <div class="result">
+            <span>Доходность (ROI)</span>
+            <strong id="roi">—</strong>
+          </div>
+        </div>
+        <p class="disclaimer">
+          Расчёты носят ориентировочный характер и не являются финансовой рекомендацией.
+        </p>
+      </section>
+
+      <footer>Life Blockchain · Крипто калькулятор · 2024</footer>
+    </div>
+
+    <script>
+      const form = {
+        asset: document.getElementById("asset"),
+        amount: document.getElementById("amount"),
+        buyPrice: document.getElementById("buyPrice"),
+        sellPrice: document.getElementById("sellPrice"),
+        fee: document.getElementById("fee"),
+        tax: document.getElementById("tax"),
+      };
+
+      const output = {
+        cost: document.getElementById("cost"),
+        proceeds: document.getElementById("proceeds"),
+        fees: document.getElementById("fees"),
+        profit: document.getElementById("profit"),
+        roi: document.getElementById("roi"),
+      };
+
+      const formatter = new Intl.NumberFormat("ru-RU", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 2,
+      });
+
+      const percentFormatter = new Intl.NumberFormat("ru-RU", {
+        style: "percent",
+        maximumFractionDigits: 2,
+      });
+
+      const toNumber = (value) => {
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+
+      const calculate = () => {
+        const amount = toNumber(form.amount.value);
+        const buyPrice = toNumber(form.buyPrice.value);
+        const sellPrice = toNumber(form.sellPrice.value);
+        const feeRate = toNumber(form.fee.value) / 100;
+        const taxRate = toNumber(form.tax.value) / 100;
+
+        const grossCost = amount * buyPrice;
+        const grossProceeds = amount * sellPrice;
+        const totalFees = grossCost * feeRate + grossProceeds * feeRate + grossProceeds * taxRate;
+        const profit = grossProceeds - grossCost - totalFees;
+        const roi = grossCost > 0 ? profit / grossCost : 0;
+
+        output.cost.textContent = formatter.format(grossCost);
+        output.proceeds.textContent = formatter.format(grossProceeds);
+        output.fees.textContent = formatter.format(totalFees);
+        output.profit.textContent = formatter.format(profit);
+        output.profit.className = profit >= 0 ? "highlight" : "neg";
+        output.roi.textContent = percentFormatter.format(roi);
+      };
+
+      const resetValues = () => {
+        form.asset.value = "BTC";
+        form.amount.value = 1;
+        form.buyPrice.value = 25000;
+        form.sellPrice.value = 32000;
+        form.fee.value = 0.1;
+        form.tax.value = 0;
+        calculate();
+      };
+
+      Object.values(form).forEach((input) => {
+        input.addEventListener("input", calculate);
+        input.addEventListener("change", calculate);
+      });
+
+      document.getElementById("reset").addEventListener("click", resetValues);
+
+      calculate();
+    </script>
+  </body>
+</html>

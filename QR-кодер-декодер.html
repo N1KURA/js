@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор и декодер QR-кодов</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4b6cb7;
+            color: #182848;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #182848;
+        }
+        
+        textarea, input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            border-color: #4b6cb7;
+            outline: none;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background-color: #4b6cb7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .btn:hover {
+            background-color: #3a5795;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        
+        .result-container {
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .qr-code-container {
+            margin: 20px auto;
+            padding: 15px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            background-color: #f9f9f9;
+        }
+        
+        #qrcode {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #qrcode canvas, #qrcode img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background: white;
+            padding: 10px;
+        }
+        
+        .decoded-text {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #4b6cb7;
+            word-break: break-word;
+            text-align: left;
+        }
+        
+        .instructions {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .instructions h3 {
+            color: #182848;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            margin: 15px auto;
+            display: none;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        
+        .copy-btn {
+            margin-top: 15px;
+            background-color: #28a745;
+        }
+        
+        .copy-btn:hover {
+            background-color: #218838;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .section {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Генератор и декодер QR-кодов</h1>
+            <p class="description">Создавайте QR-коды из любого текста и декодируйте QR-коды обратно в текст. Все в одном месте!</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="section">
+                <h2 class="section-title">Создание QR-кода</h2>
+                
+                <div class="input-group">
+                    <label for="text-input">Введите текст для создания QR-кода:</label>
+                    <textarea id="text-input" rows="5" placeholder="Введите любой текст, ссылку или другую информацию...">https://example.com</textarea>
+                </div>
+                
+                <div class="instructions">
+                    <h3>Как это работает:</h3>
+                    <ul>
+                        <li>Введите любой текст в поле выше</li>
+                        <li>Нажмите "Создать QR-код" для генерации</li>
+                        <li>QR-код будет оптимизирован для печати на листе A4</li>
+                        <li>Вы можете сохранить QR-код как изображение PNG</li>
+                    </ul>
+                </div>
+                
+                <div class="buttons">
+                    <button id="generate-btn" class="btn">Создать QR-код</button>
+                    <button id="download-btn" class="btn btn-secondary" disabled>Скачать QR-код</button>
+                    <button id="copy-image-btn" class="btn copy-btn" disabled>Копировать как изображение</button>
+                </div>
+                
+                <div class="result-container">
+                    <h3>Сгенерированный QR-код:</h3>
+                    <div class="qr-code-container">
+                        <div id="qrcode"></div>
+                    </div>
+                    <p id="generation-info"></p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Декодирование QR-кода</h2>
+                
+                <div class="input-group">
+                    <label for="file-input">Выберите изображение QR-кода:</label>
+                    <input type="file" id="file-input" accept="image/*">
+                </div>
+                
+                <div class="image-preview" id="image-preview">
+                    <h4>Предпросмотр:</h4>
+                    <img id="preview-img" src="" alt="Предпросмотр QR-кода">
+                </div>
+                
+                <div class="instructions">
+                    <h3>Как это работает:</h3>
+                    <ul>
+                        <li>Выберите файл с изображением QR-кода</li>
+                        <li>Нажмите "Декодировать QR-код"</li>
+                        <li>Текст, закодированный в QR-коде, появится ниже</li>
+                        <li>Вы можете скопировать полученный текст</li>
+                    </ul>
+                </div>
+                
+                <div class="buttons">
+                    <button id="decode-btn" class="btn">Декодировать QR-код</button>
+                    <button id="copy-text-btn" class="btn copy-btn" disabled>Копировать текст</button>
+                </div>
+                
+                <div class="result-container">
+                    <h3>Декодированный текст:</h3>
+                    <div class="decoded-text" id="decoded-text">
+                        Здесь появится текст из QR-кода после декодирования...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Генератор QR-кодов | Оптимизировано для печати на формате A4 | Все вычисления выполняются локально в вашем браузере</p>
+        </footer>
+    </div>
+
+    <script>
+        // Элементы DOM
+        const textInput = document.getElementById('text-input');
+        const generateBtn = document.getElementById('generate-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const copyImageBtn = document.getElementById('copy-image-btn');
+        const qrcodeDiv = document.getElementById('qrcode');
+        const generationInfo = document.getElementById('generation-info');
+        const fileInput = document.getElementById('file-input');
+        const decodeBtn = document.getElementById('decode-btn');
+        const copyTextBtn = document.getElementById('copy-text-btn');
+        const decodedTextDiv = document.getElementById('decoded-text');
+        const imagePreview = document.getElementById('image-preview');
+        const previewImg = document.getElementById('preview-img');
+        
+        // Переменные для хранения данных
+        let currentQRCodeDataURL = null;
+        let decodedText = '';
+        
+        // Генерация QR-кода
+        generateBtn.addEventListener('click', generateQRCode);
+        
+        // Скачивание QR-кода
+        downloadBtn.addEventListener('click', downloadQRCode);
+        
+        // Копирование QR-кода как изображение
+        copyImageBtn.addEventListener('click', copyQRCodeAsImage);
+        
+        // Декодирование QR-кода
+        decodeBtn.addEventListener('click', decodeQRCode);
+        
+        // Копирование декодированного текста
+        copyTextBtn.addEventListener('click', copyDecodedText);
+        
+        // Предпросмотр выбранного изображения
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.style.display = 'none';
+            }
+        });
+        
+        // Функция генерации QR-кода
+        function generateQRCode() {
+    const text = textInput.value.trim();
+    if (!text) {
+        alert('Пожалуйста, введите текст для генерации QR-кода');
+        return;
+    }
+    qrcodeDiv.innerHTML = ''; // Очищаем контейнер
+    const size = Math.min(window.innerWidth - 100, 600);
+    // Создаем элемент canvas
+    const canvas = document.createElement('canvas');
+    qrcodeDiv.appendChild(canvas);
+    // Используем синтаксис QRious
+    const qr = new QRious({
+        element: canvas,
+        value: text,
+        size: size,
+        background: 'white',
+        foreground: 'black',
+        level: 'M'
+    });
+    // Получаем Data URL для кнопок скачивания/копирования
+    currentQRCodeDataURL = canvas.toDataURL('image/png');
+    downloadBtn.disabled = false;
+    copyImageBtn.disabled = false;
+    generationInfo.textContent = `QR-код создан! Размер: ${size}x${size} пикселей.`;
+    generationInfo.style.color = '#28a745';
+}
+
+        
+        // Функция скачивания QR-кода
+        function downloadQRCode() {
+            if (!currentQRCodeDataURL) {
+                alert('Сначала создайте QR-код');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.href = currentQRCodeDataURL;
+            link.download = `qr-code-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Показываем сообщение об успешном скачивании
+            generationInfo.textContent = 'QR-код успешно скачан!';
+            generationInfo.style.color = '#28a745';
+        }
+        
+        // Функция копирования QR-кода как изображение
+        async function copyQRCodeAsImage() {
+            if (!currentQRCodeDataURL) {
+                alert('Сначала создайте QR-код');
+                return;
+            }
+            
+            try {
+                // Преобразуем dataURL в blob
+                const response = await fetch(currentQRCodeDataURL);
+                const blob = await response.blob();
+                
+                // Копируем в буфер обмена
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        [blob.type]: blob
+                    })
+                ]);
+                
+                generationInfo.textContent = 'QR-код скопирован в буфер обмена как изображение!';
+                generationInfo.style.color = '#28a745';
+            } catch (err) {
+                console.error('Ошибка при копировании:', err);
+                
+                // Альтернативный метод для старых браузеров
+                const canvas = qrcodeDiv.querySelector('canvas');
+                if (canvas) {
+                    canvas.toBlob(function(blob) {
+                        const item = new ClipboardItem({ "image/png": blob });
+                        navigator.clipboard.write([item]).then(function() {
+                            generationInfo.textContent = 'QR-код скопирован в буфер обмена как изображение!';
+                            generationInfo.style.color = '#28a745';
+                        }, function() {
+                            alert('Не удалось скопировать изображение. Попробуйте скачать QR-код.');
+                        });
+                    });
+                } else {
+                    alert('Не удалось скопировать изображение. Попробуйте скачать QR-код.');
+                }
+            }
+        }
+        
+        // Функция декодирования QR-кода
+        function decodeQRCode() {
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Пожалуйста, выберите файл с QR-кодом');
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                const image = new Image();
+                image.src = event.target.result;
+                
+                image.onload = function() {
+                    // Создаем canvas для обработки изображения
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    
+                    // Устанавливаем размер canvas равным размеру изображения
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    
+                    // Рисуем изображение на canvas
+                    context.drawImage(image, 0, 0);
+                    
+                    // Получаем данные изображения
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    
+                    // Декодируем QR-код
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+                    
+                    if (code) {
+                        decodedText = code.data;
+                        decodedTextDiv.textContent = decodedText;
+                        decodedTextDiv.style.borderLeftColor = '#28a745';
+                        
+                        // Активируем кнопку копирования текста
+                        copyTextBtn.disabled = false;
+                        
+                        // Показываем сообщение об успехе
+                        setTimeout(() => {
+                            decodedTextDiv.innerHTML = `<strong>Декодированный текст:</strong><br>${decodedText}`;
+                        }, 100);
+                    } else {
+                        decodedTextDiv.textContent = 'Не удалось распознать QR-код. Пожалуйста, убедитесь, что изображение содержит корректный QR-код.';
+                        decodedTextDiv.style.borderLeftColor = '#dc3545';
+                        copyTextBtn.disabled = true;
+                    }
+                };
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // Функция копирования декодированного текста
+        function copyDecodedText() {
+            if (!decodedText) {
+                alert('Нет текста для копирования');
+                return;
+            }
+            
+            navigator.clipboard.writeText(decodedText).then(function() {
+                // Временно меняем текст кнопки для подтверждения
+                const originalText = copyTextBtn.textContent;
+                copyTextBtn.textContent = 'Скопировано!';
+                copyTextBtn.style.backgroundColor = '#28a745';
+                
+                setTimeout(() => {
+                    copyTextBtn.textContent = originalText;
+                    copyTextBtn.style.backgroundColor = '';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Ошибка при копировании: ', err);
+                alert('Не удалось скопировать текст');
+            });
+        }
+        
+        // Инициализация с примером QR-кода
+        window.addEventListener('DOMContentLoaded', function() {
+            // Генерируем пример QR-кода при загрузке
+            setTimeout(generateQRCode, 500);
+        });
+    </script>
+</body>
+</html>
